@@ -1,0 +1,94 @@
+---
+title: "Predicting survival rates of passengers in the Titanic"
+output: html_notebook
+---
+
+```{r Setup}
+library(ggplot2)
+library(dplyr)
+library(readr)
+```
+
+```{r Import}
+# Let's consolidate the test and train and create one unified dataset
+trainDat <- read_csv("train.csv")
+```
+
+```{r}
+# Transform several variables into factor data types, used for training and test data
+convertToDataType <- function(data){
+  data$Survived <- factor(data$Survived
+      , levels = c(0, 1)
+      , labels = c("No", "Yes")
+  )
+  data$Sex <- factor(data$Sex)
+  data$Pclass <- factor(data$Pclass
+      , levels = c(1, 2, 3)
+      , labels = c("1st", "2nd", "3rd")
+  )
+  data$Embarked <- factor(data$Embarked
+     , levels = c("C", "Q", "S")
+     , labels = c("Cherbourg", "Queenstown", "Southampton")
+  )
+  return (data)
+}
+
+trainDat <- convertToDataType(trainDat)
+```
+
+
+Start with some exploratory data and do some data transformations as needed. 
+
+# Exploratory Data Analysis
+
+```{r}
+# Look at age
+ggplot(trainDat, aes(Age)) + geom_histogram()
+```
+```{r}
+# Look at fare
+ggplot(trainDat, aes(Fare)) + geom_histogram()
+ggplot(trainDat, aes(x = 1, y = Fare)) + geom_boxplot()
+```
+
+```{r}
+# Look at distribution of socio-economic spread
+# as expressed with the class of ticket purchased
+ggplot(trainDat, aes(x = Pclass)) + 
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  scale_y_continuous()
+```
+
+*55% of tickets bought are for the 3rd class. This is the lowest class on the socio-economic status (SES) indicator.* 
+
+```{r}
+# Look at distribution of socio-economic spread
+# as expressed with the class of ticket purchased
+ggplot(trainDat, aes(x = SibSp)) + 
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  scale_y_continuous()
+```
+
+*More than 65% had no siblings with them on the Titanic.*
+
+```{r}
+# Look at distribution of socio-economic spread
+# as expressed with the class of ticket purchased
+ggplot(trainDat, aes(x = Parch)) + 
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  scale_y_continuous()
+```
+
+*More than 65% traveled with their nannies. Surprising.*
+
+```{r}
+# Look at distribution of socio-economic spread
+# as expressed with the class of ticket purchased
+ggplot(trainDat, aes(x = Embarked)) + 
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  scale_y_continuous()
+```
+
+*65% of the passengers disembarked from Southampton.*
+
+# Binary Classification
