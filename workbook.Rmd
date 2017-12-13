@@ -103,7 +103,10 @@ ggplot(trainDat, aes(x = Embarked)) +
   # Take out name from both train and test
   drops <- c("Name", "Ticket", "Cabin", "PassengerId")
   trainDat <- trainDat[, !(names(trainDat) %in% drops)]
-  testDat <-testDat[, !(names(testDat) %in% drops)]
+  testDat <- testDat[, !(names(testDat) %in% drops)]
+
+  age.mean <- mean(testDat$Age, na.rm = TRUE)
+  testDat$Age[is.na(testDat$Age)] <- age.mean
   
   # fit model
   fit <- glm(Survived ~ ., family = binomial, data = trainDat)
@@ -112,9 +115,11 @@ ggplot(trainDat, aes(x = Embarked)) +
   summary(fit)
   
   # make predictions
-  probabilities <- predict(fit, testDat, type="response")
+  probabilities <- na.omit(predict(fit, testDat, type="response"))
   
   table(trainDat$Survived, probabilities > 0.5)
+  
+  # https://datascienceplus.com/perform-logistic-regression-in-r/
 ```
 
 The most important predictors are PClass (2nd and 3rd class), Sex, Age, and SibSp in this dataset.
