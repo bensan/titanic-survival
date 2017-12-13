@@ -12,15 +12,12 @@ library(readr)
 ```{r Import}
 # Let's consolidate the test and train and create one unified dataset
 trainDat <- read_csv("train.csv")
+testDat <- read_csv("test.csv")
 ```
 
 ```{r}
 # Transform several variables into factor data types, used for training and test data
 convertToDataType <- function(data){
-  data$Survived <- factor(data$Survived
-      , levels = c(0, 1)
-      , labels = c("No", "Yes")
-  )
   data$Sex <- factor(data$Sex)
   data$Pclass <- factor(data$Pclass
       , levels = c(1, 2, 3)
@@ -30,10 +27,18 @@ convertToDataType <- function(data){
      , levels = c("C", "Q", "S")
      , labels = c("Cherbourg", "Queenstown", "Southampton")
   )
+  data$PClass <- factor(data$Pclass)
   return (data)
 }
 
 trainDat <- convertToDataType(trainDat)
+testDat <- convertToDataType(testDat)
+  
+trainDat$Survived <- factor(trainDat$Survived
+    , levels = c(0, 1)
+    , labels = c("No", "Yes")
+)
+
 ```
 
 
@@ -91,4 +96,25 @@ ggplot(trainDat, aes(x = Embarked)) +
 
 *65% of the passengers disembarked from Southampton.*
 
-# Binary Classification
+# Binary Classification Analysis
+
+```{r}
+  library(caret)
+  # Take out name from both train and test
+  drops <- c("Name", "Ticket", "Cabin", "PassengerId")
+  trainDat <- trainDat[, !(names(trainDat) %in% drops)]
+  testDat <-testDat[, !(names(testDat) %in% drops)]
+  
+  # fit model
+  fit <- glm(Survived ~ ., family = binomial, data = trainDat)
+  
+  # summarize the fit
+  summary(fit)
+  
+  # make predictions
+  probabilities <- predict(fit, testDat, type="response")
+  
+  table(trainDat$Survived, probabilities > 0.5)
+```
+
+The most important predictors are PClass (2nd and 3rd class), Sex, Age, and SibSp in this dataset.
